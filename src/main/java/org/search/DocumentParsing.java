@@ -62,12 +62,23 @@ public class DocumentParsing {
                 // FBIS stores lists of documents in files at the top level directory,
                 // so these can be looped through and parsed.
                 for (String file : files) {
-                    documents.addAll(parseFbisFile(Paths.get(DOCUMENT_DIRECTORY, source, file)));
+                    documents.addAll(parseStandardFile(Paths.get(DOCUMENT_DIRECTORY, source, file), source));
                 }
             // Federal Register - TODO
             case "fr94":
-            // Financial Times - TODO
+                break;
+            // Financial Times
             case "ft":
+                for (String subDirectory : files) {
+                    File subDirectoryFile = new File(Paths.get(DOCUMENT_DIRECTORY, source, subDirectory).toString());
+                    String[] subFiles = subDirectoryFile.list();
+                    if (subFiles == null) {
+                        continue;
+                    }
+                    for (String subFile : subFiles) {
+                        documents.addAll(parseStandardFile(Paths.get(DOCUMENT_DIRECTORY, source, subDirectory, subFile), source));
+                    }
+                }
             // LA Times - TODO
             case "latimes":
                 break;
@@ -75,7 +86,7 @@ public class DocumentParsing {
         return documents;
     }
 
-    public List<Document> parseFbisFile(Path fullFilePath) throws IOException {
+    public List<Document> parseStandardFile(Path fullFilePath, String source) throws IOException {
         ArrayList<Document> documents = new ArrayList<>();
 
         // Retrieve the list of documents from the file.
@@ -86,7 +97,7 @@ public class DocumentParsing {
 
         // Parse every FBIS document.
         for (String doc : docs) {
-            Document newDoc = parseFbisDoc(doc);
+            Document newDoc = (source.equals("fbis"))? parseFbisDoc(doc): parseFtDoc(doc);
             // In case preprocessing has failed, drop any documents that have failed to parse.
             // (In practice, this is just newlines at the start of documents)
             if (newDoc != null) {
@@ -95,6 +106,31 @@ public class DocumentParsing {
         }
 
         return documents;
+    }
+
+    public Document parseFtDoc(String content) {
+        // Find the Document ID - stored as DOCNO
+        Pattern pattern = Pattern.compile("<DOCNO>(.*)</DOCNO>");
+        Matcher matcher = pattern.matcher(content);
+        if (!matcher.find()) {
+            return null;
+        }
+        String docNo = matcher.group(1);
+
+        // Find the Document Title and Date - stored in HEADLINE
+        // Headline takes the form FT Date / Title
+        pattern = Pattern.compile("<HEADLINE>\\s*FT\\s*(.*)\\s*/\\s*((.*\\s)*?)\\s*</HEADLINE>");
+        matcher = pattern.matcher(content);
+        if (!matcher.find()) {
+            return null;
+        }
+        String date = matcher.group(1);
+        String title = matcher.group(2);
+
+        // Split out the document text - cannot be done via regex due to large text blocks and stack size.
+        String text = (content.split("<TEXT>")[1]).split("</TEXT>")[0];
+
+        return createDocument(docNo, title, date, text);
     }
 
     public Document parseFbisDoc(String content) {
@@ -125,13 +161,15 @@ public class DocumentParsing {
         // Split out the document text - cannot be done via regex due to large text blocks and stack size.
         String text = (content.split("<TEXT>")[1]).split("</TEXT>")[0];
 
+        return createDocument(docNo, title, date, text);
+    }
+
+    private Document createDocument(String documentId, String date, String title, String content) {
         Document doc = new Document();
-        doc.add(new StringField(ID_FIELD, docNo, Field.Store.YES));
+        doc.add(new StringField(ID_FIELD, documentId, Field.Store.YES));
         doc.add(new StringField(DATE_FIELD, date, Field.Store.YES));
         doc.add(new TextField(TITLE_FIELD, title, Field.Store.YES));
-        doc.add(new TextField(TEXT_FIELD, text, Field.Store.YES));
-
-
+        doc.add(new TextField(TEXT_FIELD, content, Field.Store.YES));
         return doc;
     }
 }

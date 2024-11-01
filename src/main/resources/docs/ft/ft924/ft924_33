@@ -17188,7 +17188,8 @@ FT  23 OCT 92 / Salomon earnings collapse to Dollars 6m
 </BYLINE>
 <DATELINE>
    NEW YORK
--TEGC
+</DATELINE>
+<TEXT>
 SHARES in Salomon plunged yesterday after the group announced a dramatic
 decline in third-quarter earnings primarily due to a huge drop in trading
 profits at its Wall Street securities subsidiary Salomon Brothers.
@@ -17225,7 +17226,7 @@ and employee-related expenses, which rose sharply during the quarter to
 Dollars 370m. Phibro, meanwhile, reported a Dollars 34m pre-tax loss because
 of narrow refining spreads, poor world demand for energy products and flat
 oil trading markets.
-</DATELINE>
+</TEXT>
 <PUB>The Financial Times
 </PUB>
 <PAGE>
