@@ -64,6 +64,7 @@ public class DocumentParsing {
                 for (String file : files) {
                     documents.addAll(parseStandardFile(Paths.get(DOCUMENT_DIRECTORY, source, file), source));
                 }
+                break;
             // Federal Register - TODO
             case "fr94":
                 break;
@@ -79,9 +80,12 @@ public class DocumentParsing {
                         documents.addAll(parseStandardFile(Paths.get(DOCUMENT_DIRECTORY, source, subDirectory, subFile), source));
                     }
                 }
-            // LA Times - TODO
-            case "latimes":
                 break;
+            // LA Times
+            case "latimes":
+               for (String file : files) {
+                   documents.addAll(parseStandardFile(Paths.get(DOCUMENT_DIRECTORY, source, file), source));
+               }
         }
         return documents;
     }
@@ -97,7 +101,11 @@ public class DocumentParsing {
 
         // Parse every FBIS document.
         for (String doc : docs) {
-            Document newDoc = (source.equals("fbis"))? parseFbisDoc(doc): parseFtDoc(doc);
+            Document newDoc = (source.equals("fbis"))?
+                    parseFbisDoc(doc)
+                    : (source.equals("ft"))?
+                        parseFtDoc(doc)
+                        : parseLaDoc(doc);
             // In case preprocessing has failed, drop any documents that have failed to parse.
             // (In practice, this is just newlines at the start of documents)
             if (newDoc != null) {
@@ -106,6 +114,50 @@ public class DocumentParsing {
         }
 
         return documents;
+    }
+
+    public Document parseLaDoc(String content) {
+        // Find the TREC Document ID - stored as DOCNO
+        Pattern pattern = Pattern.compile("<DOCNO>\\s(.*)\\s</DOCNO>");
+        Matcher matcher = pattern.matcher(content);
+        if (!matcher.find()) {
+            return null;
+        }
+        String docNo = matcher.group(1);
+
+        // Find the Document Title - stored as HEADLINE
+        // This also contains the author's name, other details about publication, as well as purchasing details,
+        // which are removed.
+        pattern = Pattern.compile("<HEADLINE>\\s*(((.*)\\s)*?)\\s*</HEADLINE>");
+        matcher = pattern.matcher(content);
+        if (!matcher.find()) {
+            return null;
+        }
+        String title = matcher.group(1);
+        title = title.split("BY")[0];
+        title = title.replace("<P>", "");
+        title = title.replace("</P>", "");
+
+        // Find the Document's Date - stored as DATE - note this also includes the edition, which is removed.
+        pattern = Pattern.compile("<DATE>\\s*<P>\\s*(.*)\\s*</P>\\s*</DATE>");
+        matcher = pattern.matcher(content);
+        if (!matcher.find()) {
+            return null;
+        }
+        String date = matcher.group(1);
+        // Bring (eg) December 29, 1990, Saturday, San Diego County Edition to December 29, 1990
+        String[] elements = date.split(",");
+        date = elements[0] + "," + elements[1];
+
+        // Split out the document text - cannot be done via regex due to large text blocks and stack size.
+        if (!content.contains("<TEXT>")) { // If the document does not contain contents (eg LA011290-0165), ignore it.
+            return null;
+        }
+        String text = (content.split("<TEXT>")[1]).split("</TEXT>")[0];
+        text  = text.replace("<P>", "");
+        text = text.replace("</P>", "");
+
+        return createDocument(docNo, title, date, text);
     }
 
     public Document parseFtDoc(String content) {
