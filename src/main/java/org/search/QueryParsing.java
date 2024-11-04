@@ -1,3 +1,7 @@
+import org.apache.lucene.search.Query;
+import org.apache.lucene.search.BooleanClause;
+import org.apache.lucene.search.BooleanQuery;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -17,10 +21,28 @@ public class QueryParsing {
     private static final String DESCRIPTION_HEAD = "<desc>";
     private static final String NARRATIVE_HEAD = "<narr>";
 
+    // Parse topics file line by line, breaking up by headings - TODO
+    public List<Query> parseTopicsFile(Analyzer analyzer, Directory directory,
+        Similarity similarity) throws IOException {
+        ArrayList<Query> queries = new ArrayList<>();
 
+        // Retrieve the list of documents from the file.
+        String content = new String(Files.readAllBytes(TOPIC_DIRECTORY));
+
+        // Split the file into separate topics, not consuming the separator.
+        String[] topics = content.split("(?=" + TOPIC_HEAD + ")");
+
+        // Parse every topic and return all queries.
+       for(String topic : topics) {
+            queries.add(parseSingleTopic(topic));
+       }
+        return queries;
+    }
+
+    // Parse single topic into query
 
     // Applies an Analyzer's pre-processing to a string, returning list of strings as a result
-    public static List<String> analyzeTextToTerms(String text, Analyzer analyzer) throws IOException {
+    private static List<String> analyzeTextToTerms(String text, Analyzer analyzer) throws IOException {
         List<String> result = new ArrayList<String>();
         TokenStream tokenStream = analyzer.tokenStream("Text", text);
         CharTermAttribute attr = tokenStream.addAttribute(CharTermAttribute.class);
@@ -30,5 +52,20 @@ public class QueryParsing {
         }
         tokenStream.close();
         return result;
+    }
+
+    // check if string is any of the identifiers from topics document
+    private static boolean isIdentifier(String identity) {
+    	switch(identity) {
+    	case TOPIC_HEAD:
+    	case TOPIC_FOOT:
+    	case NUMBER_HEAD:
+    	case TITLE_HEAD:
+        case DESCRIPTION_HEAD:
+        case NARRATIVE_HEAD:
+    		return true;
+    	default:
+    		return false;
+    	}
     }
 }
