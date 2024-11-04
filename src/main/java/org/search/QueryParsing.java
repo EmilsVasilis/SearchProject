@@ -26,7 +26,7 @@ public class QueryParsing {
     private static final String DESCRIPTION_HEAD = "(<desc> Description: )";
     private static final String NARRATIVE_HEAD = "(<narr> Narrative: )";
 
-    // Parse topics file line by line, breaking up by headings - TODO
+    // Parse topics file, breaking up by topic, then return a query per topic
     public List<Query> parseTopicsFile(Analyzer analyzer) throws IOException {
         ArrayList<Query> queries = new ArrayList<>();
 
