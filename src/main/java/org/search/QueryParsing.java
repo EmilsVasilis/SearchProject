@@ -46,7 +46,6 @@ public class QueryParsing {
 
     // Parse single topic into query
     private static Query parseSingleTopic(String topic, Analyzer analyzer) throws IOException {
-        // System.out.println("Topic: " + topic);
         // Find the Topic Number
         Pattern pattern = Pattern.compile(NUMBER_HEAD + "((.|\n)+?)" + TITLE_HEAD);
         Matcher matcher = pattern.matcher(topic);
