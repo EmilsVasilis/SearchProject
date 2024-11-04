@@ -1,8 +1,5 @@
-import org.apache.lucene.search.Query;
-import org.apache.lucene.search.BooleanClause;
-import org.apache.lucene.search.BooleanQuery;
+package org.search;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -12,34 +9,96 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.TokenStream;
+import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
+import org.apache.lucene.index.Term;
+import org.apache.lucene.search.BooleanClause;
+import org.apache.lucene.search.BooleanQuery;
+import org.apache.lucene.search.Query;
+import org.apache.lucene.search.TermQuery;
+
 public class QueryParsing {
     private static final String TOPIC_DIRECTORY = "src/main/resources/topics";
-    private static final String TOPIC_HEAD = "<top>";
-    private static final String TOPIC_FOOT = "</top>";
-    private static final String NUMBER_HEAD = "<num>";
-    private static final String TITLE_HEAD = "<title>";
-    private static final String DESCRIPTION_HEAD = "<desc>";
-    private static final String NARRATIVE_HEAD = "<narr>";
+    private static final String TOPIC_FOOT = "(</top>)";
+    private static final String NUMBER_HEAD = "(<num> Number: )";
+    private static final String TITLE_HEAD = "(<title>)";
+    private static final String DESCRIPTION_HEAD = "(<desc> Description: )";
+    private static final String NARRATIVE_HEAD = "(<narr> Narrative: )";
 
     // Parse topics file line by line, breaking up by headings - TODO
-    public List<Query> parseTopicsFile(Analyzer analyzer, Directory directory,
-        Similarity similarity) throws IOException {
+    public List<Query> parseTopicsFile(Analyzer analyzer) throws IOException {
         ArrayList<Query> queries = new ArrayList<>();
 
         // Retrieve the list of documents from the file.
-        String content = new String(Files.readAllBytes(TOPIC_DIRECTORY));
+        Path path = Paths.get(TOPIC_DIRECTORY);
+        String content = new String(Files.readAllBytes(path));
 
         // Split the file into separate topics, not consuming the separator.
-        String[] topics = content.split("(?=" + TOPIC_HEAD + ")");
+        String[] topics = content.split("(?=<top>)");
 
         // Parse every topic and return all queries.
        for(String topic : topics) {
-            queries.add(parseSingleTopic(topic));
+            queries.add(parseSingleTopic(topic, analyzer));
        }
         return queries;
     }
 
     // Parse single topic into query
+    private static Query parseSingleTopic(String topic, Analyzer analyzer) throws IOException {
+        // System.out.println("Topic: " + topic);
+        // Find the Topic Number
+        Pattern pattern = Pattern.compile(NUMBER_HEAD + "((.|\n)+?)" + TITLE_HEAD);
+        Matcher matcher = pattern.matcher(topic);
+        if (!matcher.find()) {
+            return null;
+        }
+        String number = matcher.group(2);
+
+        // Find the Topic Title
+        pattern = Pattern.compile(TITLE_HEAD + "((.|\\n)+?)" + DESCRIPTION_HEAD);
+        matcher = pattern.matcher(topic);
+        if (!matcher.find()) {
+            return null;
+        }
+        String title = matcher.group(2);
+
+        // Find the Topic Description
+        pattern = Pattern.compile(DESCRIPTION_HEAD + "((.|\\n)+?)" + NARRATIVE_HEAD);
+        matcher = pattern.matcher(topic);
+        if (!matcher.find()) {
+            return null;
+        }
+        String description = matcher.group(2);
+
+        // Find the Topic Narrative
+        pattern = Pattern.compile(NARRATIVE_HEAD + "((.|\\n)+?)" + TOPIC_FOOT);
+        matcher = pattern.matcher(topic);
+        if (!matcher.find()) {
+            return null;
+        }
+        String narrative = matcher.group(2);
+
+        // pass collected information to analyzer for pre-processing
+        // TODO: Narrative and Number are ignored temporarily
+        List<String> titleTerms = analyzeTextToTerms(title, analyzer);
+        List<String> descriptionTerms = analyzeTextToTerms(title, analyzer);
+
+        // Add all terms to query
+        // TODO: Most Naive approach is taken for now, all terms added as SHOULD
+        BooleanQuery.Builder query = new BooleanQuery.Builder();
+        for(String term : titleTerms){
+            Query qterm = new TermQuery(new Term("Title", term));
+        	query.add(new BooleanClause(qterm, BooleanClause.Occur.SHOULD));
+        }
+        for(String term : descriptionTerms){
+            Query qterm = new TermQuery(new Term("Description", term));
+        	query.add(new BooleanClause(qterm, BooleanClause.Occur.SHOULD));
+        }
+        
+        // Build and return query
+        return query.build();
+    }
 
     // Applies an Analyzer's pre-processing to a string, returning list of strings as a result
     private static List<String> analyzeTextToTerms(String text, Analyzer analyzer) throws IOException {
@@ -54,18 +113,4 @@ public class QueryParsing {
         return result;
     }
 
-    // check if string is any of the identifiers from topics document
-    private static boolean isIdentifier(String identity) {
-    	switch(identity) {
-    	case TOPIC_HEAD:
-    	case TOPIC_FOOT:
-    	case NUMBER_HEAD:
-    	case TITLE_HEAD:
-        case DESCRIPTION_HEAD:
-        case NARRATIVE_HEAD:
-    		return true;
-    	default:
-    		return false;
-    	}
-    }
 }
