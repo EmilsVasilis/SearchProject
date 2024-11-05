@@ -87,11 +87,11 @@ public class QueryParsing {
         // TODO: Most Naive approach is taken for now, all terms added as SHOULD
         BooleanQuery.Builder query = new BooleanQuery.Builder();
         for(String term : titleTerms){
-            Query qterm = new TermQuery(new Term("Title", term));
+            Query qterm = new TermQuery(new Term("title", term));
         	query.add(new BooleanClause(qterm, BooleanClause.Occur.SHOULD));
         }
         for(String term : descriptionTerms){
-            Query qterm = new TermQuery(new Term("Description", term));
+            Query qterm = new TermQuery(new Term("description", term));
         	query.add(new BooleanClause(qterm, BooleanClause.Occur.SHOULD));
         }
         

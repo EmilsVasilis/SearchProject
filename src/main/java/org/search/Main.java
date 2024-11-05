@@ -15,10 +15,14 @@ public class Main {
         DocumentParsing parsing = new DocumentParsing();
         List<Document> docs = parsing.parseDocuments();
         System.out.println(docs.size());
+        Indexing index = new Indexing();
+        index.indexDocument(docs);
         // Perform Query parsing
         Analyzer analyzer = new EnglishAnalyzer(); // TODO - Delete this temp analyzer and replace
         QueryParsing topics = new QueryParsing();
         List<Query> queries = topics.parseTopicsFile(analyzer);
         System.out.println(queries.size());
+        Searching searcher = new Searching();
+        searcher.search(queries);
     }
 }
