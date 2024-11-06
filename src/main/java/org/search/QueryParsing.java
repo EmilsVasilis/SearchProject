@@ -47,7 +47,7 @@ public class QueryParsing {
     // Parse single topic into query
     private static Query parseSingleTopic(String topic, Analyzer analyzer) throws IOException {
         // Find the Topic Number
-        Pattern pattern = Pattern.compile(NUMBER_HEAD + "((.|\n)+?)" + TITLE_HEAD);
+        Pattern pattern = Pattern.compile(NUMBER_HEAD + "((.|\\s)+?)" + TITLE_HEAD);
         Matcher matcher = pattern.matcher(topic);
         if (!matcher.find()) {
             return null;
@@ -55,7 +55,7 @@ public class QueryParsing {
         String number = matcher.group(2);
 
         // Find the Topic Title
-        pattern = Pattern.compile(TITLE_HEAD + "((.|\\n)+?)" + DESCRIPTION_HEAD);
+        pattern = Pattern.compile(TITLE_HEAD + "((.|\\s)+?)" + DESCRIPTION_HEAD);
         matcher = pattern.matcher(topic);
         if (!matcher.find()) {
             return null;
@@ -63,7 +63,7 @@ public class QueryParsing {
         String title = matcher.group(2);
 
         // Find the Topic Description
-        pattern = Pattern.compile(DESCRIPTION_HEAD + "((.|\\n)+?)" + NARRATIVE_HEAD);
+        pattern = Pattern.compile(DESCRIPTION_HEAD + "((.|\\s)+?)" + NARRATIVE_HEAD);
         matcher = pattern.matcher(topic);
         if (!matcher.find()) {
             return null;
@@ -71,7 +71,7 @@ public class QueryParsing {
         String description = matcher.group(2);
 
         // Find the Topic Narrative
-        pattern = Pattern.compile(NARRATIVE_HEAD + "((.|\\n)+?)" + TOPIC_FOOT);
+        pattern = Pattern.compile(NARRATIVE_HEAD + "((.|\\s)+?)" + TOPIC_FOOT);
         matcher = pattern.matcher(topic);
         if (!matcher.find()) {
             return null;
