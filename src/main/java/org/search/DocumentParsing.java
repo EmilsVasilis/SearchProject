@@ -57,6 +57,8 @@ public class DocumentParsing {
             // Ignore this directory, not a source
             case "dtds":
                 break;
+            // LA Times - same as FBIS
+            case "latimes":
             // Foreign Broadcast Information Service
             case "fbis":
                 // FBIS stores lists of documents in files at the top level directory,
@@ -65,9 +67,8 @@ public class DocumentParsing {
                     documents.addAll(parseStandardFile(Paths.get(DOCUMENT_DIRECTORY, source, file), source));
                 }
                 break;
-            // Federal Register - TODO
+            // Federal Register - same as Financial Times, documents split into multiple subdirectories
             case "fr94":
-                break;
             // Financial Times
             case "ft":
                 for (String subDirectory : files) {
@@ -80,12 +81,6 @@ public class DocumentParsing {
                         documents.addAll(parseStandardFile(Paths.get(DOCUMENT_DIRECTORY, source, subDirectory, subFile), source));
                     }
                 }
-                break;
-            // LA Times
-            case "latimes":
-               for (String file : files) {
-                   documents.addAll(parseStandardFile(Paths.get(DOCUMENT_DIRECTORY, source, file), source));
-               }
         }
         return documents;
     }
@@ -101,19 +96,64 @@ public class DocumentParsing {
 
         // Parse every FBIS document.
         for (String doc : docs) {
-            Document newDoc = (source.equals("fbis"))?
-                    parseFbisDoc(doc)
-                    : (source.equals("ft"))?
-                        parseFtDoc(doc)
-                        : parseLaDoc(doc);
+            Document newDoc;
+            switch (source) {
+                case "latimes":
+                    newDoc = parseLaDoc(doc);
+                    break;
+                case "fbis":
+                    newDoc = parseFbisDoc(doc);
+                    break;
+                case "ft":
+                    newDoc = parseFtDoc(doc);
+                    break;
+                case "fr94":
+                    newDoc = parseFr94Doc(doc);
+                    break;
+                default:
+                    newDoc = null;
+            }
             // In case preprocessing has failed, drop any documents that have failed to parse.
             // (In practice, this is just newlines at the start of documents)
             if (newDoc != null) {
                 documents.add(newDoc);
             }
         }
-
         return documents;
+    }
+
+    public Document parseFr94Doc(String content) {
+        // Find the TREC Document ID - stored as DOCNO
+        Pattern pattern = Pattern.compile("<DOCNO>\\s(.*)\\s</DOCNO>");
+        Matcher matcher = pattern.matcher(content);
+        if (!matcher.find()) {
+            return null;
+        }
+        String docNo = matcher.group(1);
+
+        // There is no specific field for Title in FR94
+
+        // Find the Document's Date - stored in DATE. This is parsed as is follows the form Month Date, Year.
+        // Shortest possible month is May (3 chars), longest is September (9 chars).
+        // Date is one or two digits.
+        // Year is always 4 digits.
+        // Some Date sections are too big to be handled by regex.
+        // Given the faulty split of documents, not all documents contain a date field.
+        String date = "";
+        if (content.contains("<DATE>")) {
+            String dateContent = (content.split("<DATE>")[1]).split("</DATE>")[0];
+            pattern = Pattern.compile("(\\w{3,9}\\s\\d{1,2},\\s\\d{4})");
+            matcher = pattern.matcher(dateContent);
+            if (matcher.find()) {
+                date = matcher.group(1);
+            }
+        }
+
+        // Get contents of document and remove comment tags
+        String text = (content.split("<TEXT>")[1]).split("</TEXT>")[0];
+        text  = text.replaceAll("<!--(.|\\s)*?-->", "");
+
+        return createDocument(docNo, date, "", text);
     }
 
     public Document parseLaDoc(String content) {
