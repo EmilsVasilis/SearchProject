@@ -21,7 +21,6 @@ public class Main {
         Analyzer analyzer = new EnglishAnalyzer(); // TODO - Delete this temp analyzer and replace
         QueryParsing topics = new QueryParsing();
         List<Query> queries = topics.parseTopicsFile(analyzer);
-        System.out.println(queries.size());
         Searching searcher = new Searching();
         searcher.search(queries);
     }
