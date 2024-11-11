@@ -5,7 +5,7 @@ import java.io.IOException;
 import java.util.List;
 
 import org.apache.lucene.analysis.Analyzer;
-import org.apache.lucene.analysis.en.EnglishAnalyzer;
+import org.apache.lucene.analysis.custom.CustomAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.search.Query;
 
@@ -17,8 +17,16 @@ public class Main {
         System.out.println(docs.size());
         Indexing index = new Indexing();
         index.indexDocument(docs);
+        // Create custom analyzer
+        Analyzer analyzer = CustomAnalyzer.builder()
+        .withTokenizer("standard")
+        .addTokenFilter("lowercase")
+        .addTokenFilter("porterstem")
+        .addTokenFilter("stop") 
+        // TODO: Add handling for synonym expansion to analyzer (if added)
+        // TODO: Update to use custom stop words, once list obtained
+        .build();
         // Perform Query parsing
-        Analyzer analyzer = new EnglishAnalyzer(); // TODO - Delete this temp analyzer and replace
         QueryParsing topics = new QueryParsing();
         List<Query> queries = topics.parseTopicsFile(analyzer);
         Searching searcher = new Searching();
