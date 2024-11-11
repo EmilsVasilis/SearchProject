@@ -32,6 +32,8 @@ public class QueryParsing {
     private static final float NARRATIVE_BOOST = 1.2f;
     private static final float IRRELEVANT_BOOST = 2.0f;
 
+    private static final String[] IRRELEVANT_PHRASES = {"not relevant", "irrelevant"};
+
     // Parse topics file, breaking up by topic, then return a query per topic
     public List<Query> parseTopicsFile(Analyzer analyzer) throws IOException {
         ArrayList<Query> queries = new ArrayList<>();
@@ -97,7 +99,7 @@ public class QueryParsing {
         }
 
         // Generate a query from the description with a boost of 1.7
-        List<String> descriptionTerms = analyzeTextToTerms(title, analyzer);
+        List<String> descriptionTerms = analyzeTextToTerms(description, analyzer);
         for(String term : descriptionTerms){
             Query qterm = new TermQuery(new Term("description", term));
             Query boostTerm = new BoostQuery(qterm, DESCRIPTION_BOOST);
@@ -105,10 +107,23 @@ public class QueryParsing {
         }
 
         // Run a method on the narrative splitting it into Relevant and Not Relevant
+        String[] splitNarrative = splitNarrative(narrative);
 
         // (if present) Generate a query from relevant narrative with boost of 1.2
+        List<String> relevantNarrativeTerms = analyzeTextToTerms(splitNarrative[0], analyzer);
+        for(String term : relevantNarrativeTerms){
+            Query qterm = new TermQuery(new Term("narrative", term));
+            Query boostTerm = new BoostQuery(qterm, NARRATIVE_BOOST);
+        	query.add(new BooleanClause(boostTerm, BooleanClause.Occur.SHOULD));
+        }
 
         // (if present) Generate a filter clause with 2.0 boost for Not Relevant narrative
+        List<String> irrelevantNarrativeTerms = analyzeTextToTerms(splitNarrative[1], analyzer);
+        for(String term : irrelevantNarrativeTerms){
+            Query qterm = new TermQuery(new Term("narrative", term));
+            Query boostTerm = new BoostQuery(qterm, IRRELEVANT_BOOST);
+        	query.add(new BooleanClause(boostTerm, BooleanClause.Occur.FILTER));
+        }
         
         // Build and return query
         return query.build();
@@ -127,4 +142,26 @@ public class QueryParsing {
         return result;
     }
 
+    // Split narrative by full stops, then check each sentence if it contains
+    // irrelevant phrases, ignoring case.
+    // Return relevant and irrelevant sentences as different string elements
+    // of single string array with 2 elements
+    // where element 0 is relevant, and element 1 is irrelevant
+    private static String[] splitNarrative(String narrativeInput){
+        String[] narratives = {"", ""};
+        String[] splitInput = narrativeInput.split("\\.");
+        for(String input : splitInput){
+            boolean isRelevant = true;
+            for(String phrase : IRRELEVANT_PHRASES){
+                if(input.toUpperCase().contains(phrase.toUpperCase()))
+                    isRelevant = false;
+            }
+            if(isRelevant){
+                narratives[0] += input;
+            } else {
+                narratives[1] += input;
+            }
+        }
+        return narratives;
+    }
 }
