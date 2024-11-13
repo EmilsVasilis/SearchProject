@@ -96,17 +96,15 @@ public class QueryParsing {
         for(String term : titleTerms){
             Query qterm = new TermQuery(new Term("title", term));
             Query boostTerm = new BoostQuery(qterm, TITLE_BOOST);
-        	titleQuery.add(new BooleanClause(boostTerm, BooleanClause.Occur.SHOULD));
+        	query.add(new BooleanClause(boostTerm, BooleanClause.Occur.SHOULD));
         }
-        Query query_p1 = titleQuery.build();
 
         // Generate a query from the description with a boost of 1.7
         List<String> descriptionTerms = analyzeTextToTerms(description, analyzer);
-        BooleanQuery.Builder descriptionQuery = new BooleanQuery.Builder();
         for(String term : descriptionTerms){
             Query qterm = new TermQuery(new Term("description", term));
             Query boostTerm = new BoostQuery(qterm, DESCRIPTION_BOOST);
-        	descriptionQuery.add(new BooleanClause(boostTerm, BooleanClause.Occur.SHOULD));
+        	query.add(new BooleanClause(boostTerm, BooleanClause.Occur.SHOULD));
         }
         Query query_p2 = descriptionQuery.build();
 
