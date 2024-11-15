@@ -1,6 +1,5 @@
 package org.search;
 
-
 import java.io.IOException;
 import java.util.List;
 
@@ -10,6 +9,7 @@ import org.apache.lucene.document.Document;
 import org.apache.lucene.search.Query;
 
 public class Main {
+
     public static void main(String[] args) throws IOException {
         // Perform document parsing.
         DocumentParsing parsing = new DocumentParsing();
@@ -19,13 +19,14 @@ public class Main {
         index.indexDocument(docs);
         // Create custom analyzer
         Analyzer analyzer = CustomAnalyzer.builder()
-        .withTokenizer("standard")
-        .addTokenFilter("lowercase")
-        .addTokenFilter("porterstem")
-        .addTokenFilter("stop") 
-        // TODO: Add handling for synonym expansion to analyzer (if added)
-        // TODO: Update to use custom stop words, once list obtained
-        .build();
+            .withTokenizer("standard")
+            .addTokenFilter("lowercase")
+            .addTokenFilter("porterstem")
+            .addTokenFilter("stop", "ignoreCase", "false", "words", "src/main/resources/SMART_stopwords.txt", "format", "wordset")
+            // TODO: Add handling for synonym expansion to analyzer (if added)
+            // TODO: Update to use custom stop words, once list obtained
+            .build();
+
         // Perform Query parsing
         QueryParsing topics = new QueryParsing();
         List<Query> queries = topics.parseTopicsFile(analyzer);
