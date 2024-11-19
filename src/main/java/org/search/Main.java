@@ -5,7 +5,6 @@ import java.util.List;
 
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.custom.CustomAnalyzer;
-import org.apache.lucene.document.Document;
 import org.apache.lucene.search.Query;
 
 public class Main {
@@ -22,9 +21,8 @@ public class Main {
             .withTokenizer("standard")
             .addTokenFilter("lowercase")
             .addTokenFilter("porterstem")
-            .addTokenFilter("stop", "ignoreCase", "false", "words", "src/main/resources/SMART_stopwords.txt", "format", "wordset")
+            .addTokenFilter("stop", "ignoreCase", "false", "words", "./SMART_stopwords.txt", "format", "wordset")
             // TODO: Add handling for synonym expansion to analyzer (if added)
-            // TODO: Update to use custom stop words, once list obtained
             .build();
 
         // Perform Query parsing

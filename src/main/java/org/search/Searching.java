@@ -17,6 +17,8 @@ import org.apache.lucene.store.FSDirectory;
 
 public class Searching {
 
+    private static final int RESULTS_PER_QUERY = 1000;
+
     public void search(List<Query> queries) {
         String indexDir = "target/index";
         String outputFile = "src/main/resources/output.txt";
@@ -44,8 +46,8 @@ public class Searching {
 
     private static void executeQuery(IndexSearcher searcher, int queryNumber, Query query, BufferedWriter writer) {
         try {
-            // Execute the search and retrieve top 50 results
-            ScoreDoc[] hits = searcher.search(query, 50).scoreDocs;
+            // Execute the search and retrieve top results
+            ScoreDoc[] hits = searcher.search(query, RESULTS_PER_QUERY).scoreDocs;
            
             for (int i = 0; i < hits.length; i++) {
                 ScoreDoc hit = hits[i];
