@@ -15,9 +15,9 @@ import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.BooleanQuery;
+import org.apache.lucene.search.BoostQuery;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.TermQuery;
-import org.apache.lucene.search.BoostQuery;
 
 public class QueryParsing {
     private static final String TOPIC_DIRECTORY = "src/main/resources/topics";
@@ -92,52 +92,38 @@ public class QueryParsing {
         BooleanQuery.Builder query = new BooleanQuery.Builder();
         // Generate a query from the title field with a boost of 4.0
         List<String> titleTerms = analyzeTextToTerms(title, analyzer);
-        BooleanQuery.Builder titleQuery = new BooleanQuery.Builder();
         for(String term : titleTerms){
             Query qterm = new TermQuery(new Term("title", term));
             Query boostTerm = new BoostQuery(qterm, TITLE_BOOST);
-        	titleQuery.add(new BooleanClause(boostTerm, BooleanClause.Occur.SHOULD));
+        	query.add(new BooleanClause(boostTerm, BooleanClause.Occur.SHOULD));
         }
-        Query query_p1 = titleQuery.build();
 
         // Generate a query from the description with a boost of 1.7
         List<String> descriptionTerms = analyzeTextToTerms(description, analyzer);
-        BooleanQuery.Builder descriptionQuery = new BooleanQuery.Builder();
         for(String term : descriptionTerms){
             Query qterm = new TermQuery(new Term("description", term));
             Query boostTerm = new BoostQuery(qterm, DESCRIPTION_BOOST);
-        	descriptionQuery.add(new BooleanClause(boostTerm, BooleanClause.Occur.SHOULD));
+        	query.add(new BooleanClause(boostTerm, BooleanClause.Occur.SHOULD));
         }
-        Query query_p2 = descriptionQuery.build();
 
         // Run a method on the narrative splitting it into Relevant and Not Relevant
         String[] splitNarrative = splitNarrative(narrative);
 
         // (if present) Generate a query from relevant narrative with boost of 1.2
         List<String> relevantNarrativeTerms = analyzeTextToTerms(splitNarrative[0], analyzer);
-        BooleanQuery.Builder relevantNarrative = new BooleanQuery.Builder();
         for(String term : relevantNarrativeTerms){
             Query qterm = new TermQuery(new Term("narrative", term));
             Query boostTerm = new BoostQuery(qterm, NARRATIVE_BOOST);
-        	relevantNarrative.add(new BooleanClause(boostTerm, BooleanClause.Occur.SHOULD));
+        	query.add(new BooleanClause(boostTerm, BooleanClause.Occur.SHOULD));
         }
-        Query query_p3 = relevantNarrative.build();
 
         // (if present) Generate a filter clause with 2.0 boost for Not Relevant narrative
-        List<String> irrelevantNarrativeTerms = analyzeTextToTerms(splitNarrative[1], analyzer);
-        BooleanQuery.Builder irrelevantNarrative = new BooleanQuery.Builder();
+        /*List<String> irrelevantNarrativeTerms = analyzeTextToTerms(splitNarrative[1], analyzer);
         for(String term : irrelevantNarrativeTerms){
             Query qterm = new TermQuery(new Term("narrative", term));
             Query boostTerm = new BoostQuery(qterm, IRRELEVANT_BOOST);
-        	irrelevantNarrative.add(new BooleanClause(boostTerm, BooleanClause.Occur.FILTER));
-        }
-        Query query_p4 = irrelevantNarrative.build();
-
-        // Combine generated queries for each field into one query
-        query.add(new BooleanClause(query_p1, BooleanClause.Occur.SHOULD));
-        query.add(new BooleanClause(query_p2, BooleanClause.Occur.SHOULD));
-        query.add(new BooleanClause(query_p3, BooleanClause.Occur.SHOULD));
-        query.add(new BooleanClause(query_p4, BooleanClause.Occur.SHOULD));
+        	query.add(new BooleanClause(boostTerm, BooleanClause.Occur.FILTER));
+        }*/
         
         // Build and return query
         return query.build();

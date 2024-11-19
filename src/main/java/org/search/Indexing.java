@@ -36,10 +36,10 @@ public class Indexing {
     }
 
    
-    public void indexDocument(List<Document> docs) throws IOException {
+    public void indexDocument(List<Document> docs, Analyzer analyzer) throws IOException {
 
         Directory dir = FSDirectory.open(Paths.get("target/index"));  
-        IndexWriterConfig config = new IndexWriterConfig(new CustomAnalyzer());  
+        IndexWriterConfig config = new IndexWriterConfig(analyzer);  
         config.setOpenMode(IndexWriterConfig.OpenMode.CREATE);
         config.setSimilarity(new BM25Similarity());
         writer = new IndexWriter(dir, config);  

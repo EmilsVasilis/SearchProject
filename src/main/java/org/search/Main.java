@@ -15,8 +15,6 @@ public class Main {
         DocumentParsing parsing = new DocumentParsing();
         List<Document> docs = parsing.parseDocuments();
         System.out.println(docs.size());
-        Indexing index = new Indexing();
-        index.indexDocument(docs);
         // Create custom analyzer
         Analyzer analyzer = CustomAnalyzer.builder()
             .withTokenizer("standard")
@@ -25,7 +23,8 @@ public class Main {
             .addTokenFilter("stop", "ignoreCase", "false", "words", "./SMART_stopwords.txt", "format", "wordset")
             // TODO: Add handling for synonym expansion to analyzer (if added)
             .build();
-
+        Indexing index = new Indexing();
+        index.indexDocument(docs, analyzer);
         // Perform Query parsing
         QueryParsing topics = new QueryParsing();
         List<Query> queries = topics.parseTopicsFile(analyzer);
