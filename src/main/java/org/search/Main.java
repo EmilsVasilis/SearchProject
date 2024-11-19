@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.custom.CustomAnalyzer;
+import org.apache.lucene.document.Document;
 import org.apache.lucene.search.Query;
 
 public class Main {
