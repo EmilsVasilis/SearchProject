@@ -14,6 +14,7 @@ import org.apache.lucene.analysis.standard.StandardTokenizer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
+import org.apache.lucene.search.similarities.BM25Similarity;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 
@@ -40,6 +41,7 @@ public class Indexing {
         Directory dir = FSDirectory.open(Paths.get("target/index"));  
         IndexWriterConfig config = new IndexWriterConfig(new CustomAnalyzer());  
         config.setOpenMode(IndexWriterConfig.OpenMode.CREATE);
+        config.setSimilarity(new BM25Similarity());
         writer = new IndexWriter(dir, config);  
 
         for (Document doc: docs){
