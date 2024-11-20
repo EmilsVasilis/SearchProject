@@ -119,12 +119,12 @@ public class QueryParsing {
         }
 
         // (if present) Generate a filter clause with 2.0 boost for Not Relevant narrative
-        /*List<String> irrelevantNarrativeTerms = analyzeTextToTerms(splitNarrative[1], analyzer);
+        List<String> irrelevantNarrativeTerms = analyzeTextToTerms(splitNarrative[1], analyzer);
         for(String term : irrelevantNarrativeTerms){
-            Query qterm = new TermQuery(new Term("narrative", term));
+            Query qterm = new TermQuery(new Term(DocumentParsing.TEXT_FIELD, term));
             Query boostTerm = new BoostQuery(qterm, IRRELEVANT_BOOST);
         	query.add(new BooleanClause(boostTerm, BooleanClause.Occur.FILTER));
-        }*/
+        }
         
         // Build and return query
         return query.build();
