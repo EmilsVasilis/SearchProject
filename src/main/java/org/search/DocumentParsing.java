@@ -1,11 +1,6 @@
 package org.search;
 
 
-import org.apache.lucene.document.Document;
-import org.apache.lucene.document.Field;
-import org.apache.lucene.document.StringField;
-import org.apache.lucene.document.TextField;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -16,12 +11,17 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.lucene.document.Document;
+import org.apache.lucene.document.Field;
+import org.apache.lucene.document.StringField;
+import org.apache.lucene.document.TextField;
+
 public class DocumentParsing {
     private static final String DOCUMENT_DIRECTORY = "src/main/resources/docs";
     private static final String ID_FIELD = "id";
     private static final String TITLE_FIELD = "title";
     private static final String DATE_FIELD = "date";
-    private static final String TEXT_FIELD = "content";
+    public static final String TEXT_FIELD = "content";
 
     public List<Document> parseDocuments() throws IOException {
         ArrayList<Document> documents = new ArrayList<>();

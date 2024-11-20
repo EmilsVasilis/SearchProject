@@ -18,6 +18,7 @@ import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.BoostQuery;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.TermQuery;
+import org.search.DocumentParsing;
 
 public class QueryParsing {
     private static final String TOPIC_DIRECTORY = "src/main/resources/topics";
@@ -93,7 +94,7 @@ public class QueryParsing {
         // Generate a query from the title field with a boost of 4.0
         List<String> titleTerms = analyzeTextToTerms(title, analyzer);
         for(String term : titleTerms){
-            Query qterm = new TermQuery(new Term("title", term));
+            Query qterm = new TermQuery(new Term(DocumentParsing.TEXT_FIELD, term));
             Query boostTerm = new BoostQuery(qterm, TITLE_BOOST);
         	query.add(new BooleanClause(boostTerm, BooleanClause.Occur.SHOULD));
         }
@@ -101,7 +102,7 @@ public class QueryParsing {
         // Generate a query from the description with a boost of 1.7
         List<String> descriptionTerms = analyzeTextToTerms(description, analyzer);
         for(String term : descriptionTerms){
-            Query qterm = new TermQuery(new Term("description", term));
+            Query qterm = new TermQuery(new Term(DocumentParsing.TEXT_FIELD, term));
             Query boostTerm = new BoostQuery(qterm, DESCRIPTION_BOOST);
         	query.add(new BooleanClause(boostTerm, BooleanClause.Occur.SHOULD));
         }
@@ -112,7 +113,7 @@ public class QueryParsing {
         // (if present) Generate a query from relevant narrative with boost of 1.2
         List<String> relevantNarrativeTerms = analyzeTextToTerms(splitNarrative[0], analyzer);
         for(String term : relevantNarrativeTerms){
-            Query qterm = new TermQuery(new Term("narrative", term));
+            Query qterm = new TermQuery(new Term(DocumentParsing.TEXT_FIELD, term));
             Query boostTerm = new BoostQuery(qterm, NARRATIVE_BOOST);
         	query.add(new BooleanClause(boostTerm, BooleanClause.Occur.SHOULD));
         }
