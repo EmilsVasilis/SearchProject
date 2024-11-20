@@ -25,6 +25,11 @@
             <artifactId>lucene-analyzers-common</artifactId>
             <version>8.6.3</version>
         </dependency>
+        <dependency>
+            <groupId>org.apache.lucene</groupId>
+            <artifactId>lucene-misc</artifactId>
+            <version>8.6.3</version>
+        </dependency>
 
         <dependency>
             <groupId>org.deeplearning4j</groupId>
