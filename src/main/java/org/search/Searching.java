@@ -33,7 +33,6 @@ public class Searching {
             int queryNumber = 401;
             for (Query query : queries) {
                 // Execute each pre-processed query
-                System.out.println(query);
                 executeQuery(searcher, queryNumber, query, writer);
                 queryNumber++;
             }
@@ -51,7 +50,6 @@ public class Searching {
            
             for (int i = 0; i < hits.length; i++) {
                 ScoreDoc hit = hits[i];
-                System.out.println(hits[i]);
                 Document doc = searcher.doc(hit.doc);
                 String docId = doc.get("id"); // Assuming the id field is a string
 

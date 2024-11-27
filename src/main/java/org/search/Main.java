@@ -14,14 +14,12 @@ public class Main {
         // Perform document parsing.
         DocumentParsing parsing = new DocumentParsing();
         List<Document> docs = parsing.parseDocuments();
-        System.out.println(docs.size());
         // Create custom analyzer
         Analyzer analyzer = CustomAnalyzer.builder()
             .withTokenizer("standard")
             .addTokenFilter("lowercase")
             .addTokenFilter("porterstem")
             .addTokenFilter("stop", "ignoreCase", "false", "words", "./SMART_stopwords.txt", "format", "wordset")
-            // TODO: Add handling for synonym expansion to analyzer (if added)
             .build();
         Indexing index = new Indexing();
         index.indexDocument(docs, analyzer);
