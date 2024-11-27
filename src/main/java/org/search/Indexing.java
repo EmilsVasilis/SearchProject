@@ -41,7 +41,7 @@ public class Indexing {
         Directory dir = FSDirectory.open(Paths.get("target/index"));  
         IndexWriterConfig config = new IndexWriterConfig(analyzer);  
         config.setOpenMode(IndexWriterConfig.OpenMode.CREATE);
-        config.setSimilarity(new BM25Similarity());
+        config.setSimilarity(new BM25Similarity(0.75F, 0.75F));
         writer = new IndexWriter(dir, config);  
 
         for (Document doc: docs){

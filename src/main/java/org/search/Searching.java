@@ -28,7 +28,7 @@ public class Searching {
              BufferedWriter writer = new BufferedWriter(new FileWriter(outputFile))) {
 
             IndexSearcher searcher = new IndexSearcher(reader);
-            searcher.setSimilarity(new BM25Similarity());
+            searcher.setSimilarity(new BM25Similarity(0.75F, 0.75F));
 
             int queryNumber = 401;
             for (Query query : queries) {
